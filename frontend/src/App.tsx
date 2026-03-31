@@ -170,7 +170,9 @@ const App: React.FC = () => {
               </div>
               <div className="header-right">
                 <div className="user-info">
-                  <span className="welcome-text">Welcome, {user?.username}!</span>
+                  <span className="welcome-text">
+                    Welcome, {user?.username === 'guest' ? 'Guest User' : user?.username}!
+                  </span>
                   <button className="logout-button" onClick={handleLogout}>
                     Logout
                   </button>
