@@ -4,7 +4,7 @@ import SearchBar from './components/SearchBar';
 import ResultColumns from './components/ResultColumns';
 import Login from './components/Login';
 import LandingPage from './components/LandingPage';
-import { AIResponse, ComparisonResult } from './types';
+import { ComparisonResult } from './types';
 
 interface User {
   username: string;
@@ -104,7 +104,7 @@ const App: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8001/compare', {
+      const response = await fetch('/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

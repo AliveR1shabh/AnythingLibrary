@@ -35,9 +35,10 @@ app.add_middleware(
 # Models
 class AIRequest(BaseModel):
     prompt: str
-    providers: List[str] = ["openai", "anthropic", "google", "cohere"]
-    max_tokens: Optional[int] = 500
+    providers: List[str] = ["google", "groq", "cerebras"]
+    max_tokens: Optional[int] = 1500
     temperature: Optional[float] = 0.7
+    simplify: Optional[bool] = False
 
 class AIResponse(BaseModel):
     provider: str
@@ -140,17 +141,21 @@ class AnthropicProvider(AIProvider):
             }
 
 class GoogleProvider(AIProvider):
-    async def generate_response(self, prompt: str, max_tokens: int = 500, temperature: float = 0.7) -> Dict[str, Any]:
+    async def generate_response(self, prompt: str, max_tokens: int = 1500, temperature: float = 0.7) -> Dict[str, Any]:
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={self.api_key}",
+                    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={self.api_key}",
                     headers={"Content-Type": "application/json"},
                     json={
                         "contents": [{"parts": [{"text": prompt}]}],
                         "generationConfig": {
                             "maxOutputTokens": max_tokens,
-                            "temperature": temperature
+                            "temperature": temperature,
+                            "topP": 0.9,
+                            "topK": 40,
+                            "candidateCount": 1,
+                            "stopSequences": []
                         }
                     },
                     timeout=30.0
@@ -158,9 +163,10 @@ class GoogleProvider(AIProvider):
                 
                 if response.status_code == 200:
                     data = response.json()
+                    google_response = data["candidates"][0]["content"]["parts"][0]["text"]
                     return {
-                        "response": data["candidates"][0]["content"]["parts"][0]["text"],
-                        "tokens_used": None,  # Google doesn't provide token count in the same way
+                        "response": google_response,
+                        "tokens_used": None,
                         "error": None
                     }
                 else:
@@ -174,6 +180,84 @@ class GoogleProvider(AIProvider):
                 "response": "",
                 "tokens_used": None,
                 "error": f"Google connection error: {str(e)}"
+            }
+
+class GroqProvider(AIProvider):
+    async def generate_response(self, prompt: str, max_tokens: int = 300, temperature: float = 0.7) -> Dict[str, Any]:
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "llama-3.3-70b-versatile",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": max_tokens,
+                        "temperature": temperature
+                    },
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        "response": data["choices"][0]["message"]["content"],
+                        "tokens_used": data.get("usage", {}).get("total_tokens"),
+                        "error": None
+                    }
+                else:
+                    return {
+                        "response": "",
+                        "tokens_used": None,
+                        "error": f"GROQ API error: {response.status_code}"
+                    }
+        except Exception as e:
+            return {
+                "response": "",
+                "tokens_used": None,
+                "error": f"GROQ connection error: {str(e)}"
+            }
+
+class CerebrasProvider(AIProvider):
+    async def generate_response(self, prompt: str, max_tokens: int = 300, temperature: float = 0.7) -> Dict[str, Any]:
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    "https://api.cerebras.ai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": "llama3.1-8b",
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": max_tokens,
+                        "temperature": temperature
+                    },
+                    timeout=30.0
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        "response": data["choices"][0]["message"]["content"],
+                        "tokens_used": data.get("usage", {}).get("total_tokens"),
+                        "error": None
+                    }
+                else:
+                    return {
+                        "response": "",
+                        "tokens_used": None,
+                        "error": f"Cerebras API error: {response.status_code}"
+                    }
+        except Exception as e:
+            return {
+                "response": "",
+                "tokens_used": None,
+                "error": f"Cerebras connection error: {str(e)}"
             }
 
 class CohereProvider(AIProvider):
@@ -221,29 +305,23 @@ def get_providers() -> Dict[str, AIProvider]:
     
     logger.info("Checking for API keys...")
     
-    if os.getenv("OPENAI_API_KEY"):
-        providers["openai"] = OpenAIProvider("OpenAI", os.getenv("OPENAI_API_KEY"))
-        logger.info("OpenAI provider initialized")
-    else:
-        logger.warning("OpenAI API key not found")
-    
-    if os.getenv("ANTHROPIC_API_KEY"):
-        providers["anthropic"] = AnthropicProvider("Anthropic", os.getenv("ANTHROPIC_API_KEY"))
-        logger.info("Anthropic provider initialized")
-    else:
-        logger.warning("Anthropic API key not found")
-    
     if os.getenv("GOOGLE_API_KEY"):
         providers["google"] = GoogleProvider("Google", os.getenv("GOOGLE_API_KEY"))
         logger.info("Google provider initialized")
     else:
         logger.warning("Google API key not found")
     
-    if os.getenv("COHERE_API_KEY"):
-        providers["cohere"] = CohereProvider("Cohere", os.getenv("COHERE_API_KEY"))
-        logger.info("Cohere provider initialized")
+    if os.getenv("GROQ_API_KEY"):
+        providers["groq"] = GroqProvider("GROQ", os.getenv("GROQ_API_KEY"))
+        logger.info("GROQ provider initialized")
     else:
-        logger.warning("Cohere API key not found")
+        logger.warning("GROQ API key not found")
+    
+    if os.getenv("CEREBRAS_API_KEY"):
+        providers["cerebras"] = CerebrasProvider("Cerebras", os.getenv("CEREBRAS_API_KEY"))
+        logger.info("Cerebras provider initialized")
+    else:
+        logger.warning("Cerebras API key not found")
     
     logger.info(f"Total providers available: {list(providers.keys())}")
     return providers
@@ -268,16 +346,29 @@ async def get_available_providers():
 
 @app.post("/compare", response_model=ComparisonResult)
 async def compare_ai_responses(request: AIRequest):
-    logger.info(f"Received compare request: prompt='{request.prompt[:50]}...', providers={request.providers}")
+    prompt = request.prompt
+    providers = request.providers
+    max_tokens = request.max_tokens
+    temperature = request.temperature
+    simplify = request.simplify
     
-    providers = get_providers()
-    logger.info(f"Available providers: {list(providers.keys())}")
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+    
+    # If simplify is true, modify the prompt
+    if simplify:
+        prompt = f"{prompt}\n\nPlease explain this like I'm 10 years old. Use simple words, short sentences, and examples that a child can understand. Avoid technical jargon and complex concepts."
+    
+    logger.info(f"Received compare request: prompt='{prompt[:50]}...', providers={providers}")
+    
+    providers_dict = get_providers()
+    logger.info(f"Available providers: {list(providers_dict.keys())}")
     
     # Filter providers based on request and availability
     available_providers = {}
-    for provider_name in request.providers:
-        if provider_name in providers:
-            available_providers[provider_name] = providers[provider_name]
+    for provider_name in providers:
+        if provider_name in providers_dict:
+            available_providers[provider_name] = providers_dict[provider_name]
             logger.info(f"Provider {provider_name} is available")
         else:
             logger.warning(f"Provider {provider_name} requested but not available")
@@ -292,9 +383,9 @@ async def compare_ai_responses(request: AIRequest):
     tasks = []
     for provider_name, provider in available_providers.items():
         task = provider.generate_response(
-            request.prompt, 
-            request.max_tokens, 
-            request.temperature
+            prompt, 
+            max_tokens, 
+            temperature
         )
         tasks.append((provider_name, task))
     
@@ -315,11 +406,11 @@ async def compare_ai_responses(request: AIRequest):
     
     logger.info(f"Returning {len(results)} responses")
     return ComparisonResult(
-        prompt=request.prompt,
+        prompt=request.prompt,  # Use original prompt, not modified one
         responses=results,
         timestamp=datetime.now()
     )
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

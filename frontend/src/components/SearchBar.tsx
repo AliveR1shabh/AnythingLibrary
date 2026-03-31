@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './SearchBar.css';
-import { SearchProps } from '../types';
 
 interface SearchBarProps {
   onSearch: (prompt: string, providers: string[], simplify: boolean) => void;
@@ -29,7 +28,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, loading, availableProvi
     if (availableProviders.length > 0 && selectedProviders.length === 0) {
       setSelectedProviders(availableProviders);
     }
-  }, [availableProviders]);
+  }, [availableProviders, selectedProviders.length]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
