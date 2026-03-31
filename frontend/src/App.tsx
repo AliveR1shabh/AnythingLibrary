@@ -4,6 +4,7 @@ import SearchBar from './components/SearchBar';
 import ResultColumns from './components/ResultColumns';
 import Login from './components/Login';
 import LandingPage from './components/LandingPage';
+import DarkModeToggle from './components/DarkModeToggle';
 import { ComparisonResult } from './types';
 
 interface User {
@@ -137,6 +138,7 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
+      <DarkModeToggle />
       {showLanding ? (
         <LandingPage onGetStarted={handleGetStarted} />
       ) : !isAuthenticated ? (
@@ -146,61 +148,66 @@ const App: React.FC = () => {
           error={loginError} 
         />
       ) : (
-        <>
-          <header className="App-header">
-            <div className="header-content">
-              <div className="header-left">
-                <div className="app-title-section">
-                  <div className="app-logo">
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="40" height="40" rx="8" fill="url(#gradient1)"/>
-                      <path d="M10 20L15 15L20 20L25 15L30 20L25 25L20 20L15 25L10 20Z" fill="white"/>
-                      <defs>
-                        <linearGradient id="gradient1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-                          <stop stopColor="#667eea"/>
-                          <stop offset="1" stopColor="#764ba2"/>
-                        </linearGradient>
-                      </defs>
-                    </svg>
-                  </div>
-                  <div className="app-title">
-                    <h1>AnythingLibrary</h1>
-                    <p>Compare multiple AI responses side by side</p>
-                  </div>
+        <div className="app-container">
+          <div className="App-header">
+            <div className="header-left">
+              <div className="app-title-section">
+                <div className="app-logo">
+                  <svg width="40" height="40" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="32" height="32" rx="8" fill="url(#gradient1)"/>
+                    <path d="M8 12L16 8L24 12L16 16L8 12Z" fill="white" opacity="0.9"/>
+                    <path d="M8 20L16 16L24 20L16 24L8 20Z" fill="white" opacity="0.8"/>
+                    <path d="M8 16L16 12L24 16L16 20L8 16Z" fill="white" opacity="0.7"/>
+                    <text x="16" y="20" fontFamily="Arial, sans-serif" fontSize="8" fontWeight="bold" fill="white" textAnchor="middle">AL</text>
+                    <defs>
+                      <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style={{stopColor: '#667eea', stopOpacity: 1}} />
+                        <stop offset="100%" style={{stopColor: '#764ba2', stopOpacity: 1}} />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+                <div className="app-title">
+                  <h1>AnythingLibrary</h1>
+                  <p>Compare Multiple AI Responses Side by Side</p>
                 </div>
               </div>
               <div className="header-right">
-                <span className="welcome-text">Welcome, {user?.username}</span>
-                <button onClick={handleLogout} className="logout-button">
-                  Logout
-                </button>
+                <div className="user-info">
+                  <span className="welcome-text">Welcome, {user?.username}!</span>
+                  <button className="logout-button" onClick={handleLogout}>
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
-          </header>
-          
-          <main>
+
             <SearchBar 
               onSearch={handleSearch} 
-              loading={loading} 
               availableProviders={availableProviders}
+              loading={loading}
             />
+            
+            {loading && (
+              <div className="loading">
+                <div className="loading-spinner"></div>
+              </div>
+            )}
             
             {error && (
               <div className="error-message">
-                <p>Error: {error}</p>
+                ⚠️ {error}
               </div>
             )}
             
-            {results && (
-              <ResultColumns results={results} />
-            )}
-          </main>
-          
-          <footer className="App-footer">
-            <p>&copy; 2026 AnythingLibrary. Compare AI responses with ease. Made by Rishabh Gupta.</p>
-          </footer>
-        </>
+            {results && <ResultColumns results={results} />}
+          </div>
+        </div>
       )}
+      
+      <div className="App-footer">
+        <p> 2024 AnythingLibrary. Powered by Multiple AI Providers.</p>
+      </div>
     </div>
   );
 };

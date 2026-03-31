@@ -147,6 +147,11 @@
 
 @media (max-width: 480px) {
   .header-right {
-    gap: 0.5rem;
+    gap: 0.25rem;
+  }
+  
+  .logout-button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
   }
 }
