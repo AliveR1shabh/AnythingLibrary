@@ -142,11 +142,7 @@ const App: React.FC = () => {
       {showLanding ? (
         <LandingPage onGetStarted={handleGetStarted} />
       ) : !isAuthenticated ? (
-        <Login 
-          onLogin={handleLogin} 
-          loading={loginLoading} 
-          error={loginError} 
-        />
+        <Login onLogin={handleLogin} loading={loginLoading} error={loginError} />
       ) : (
         <div className="app-container">
           <div className="App-header">

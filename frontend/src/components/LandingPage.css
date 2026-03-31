@@ -280,3 +280,69 @@
     font-size: 1.1rem;
   }
 }
+
+/* Dark Mode Styles for Landing Page */
+.dark-mode .landing-page {
+  background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+}
+
+.dark-mode .landing-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .landing-header {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .landing-title {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.dark-mode .landing-subtitle {
+  color: #cbd5e0;
+}
+
+.dark-mode .feature-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.dark-mode .feature-title {
+  color: #f7fafc;
+}
+
+.dark-mode .feature-description {
+  color: #e2e8f0;
+}
+
+.dark-mode .cta-button {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  box-shadow: 0 8px 24px rgba(66, 153, 225, 0.4);
+}
+
+.dark-mode .cta-button:hover {
+  background: linear-gradient(135deg, #2c5282 0%, #1e40af 100%);
+  box-shadow: 0 12px 32px rgba(66, 153, 225, 0.5);
+}
+
+.dark-mode .hero-title {
+  color: #f7fafc;
+}
+
+.dark-mode .hero-description {
+  color: #e2e8f0;
+}
+
+.dark-mode .provider-item {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
