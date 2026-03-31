@@ -104,7 +104,7 @@ const App: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch('/api', {
+      const response = await fetch('http://localhost:8001/compare', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
