@@ -17,6 +17,115 @@ const ResultColumns: React.FC<ResultColumnsProps> = ({ results }) => {
     });
   };
 
+  const exportToPDF = async () => {
+    if (!results || !results.responses || results.responses.length === 0) {
+      alert('No results to export');
+      return;
+    }
+
+    try {
+      // Dynamically import jsPDF
+      const { jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AI Comparison Results', 20, 20);
+      
+      // Add prompt
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      const promptLines = doc.splitTextToSize(results.prompt, 180);
+      doc.text('Prompt:', 20, 40);
+      doc.setFont('helvetica', 'italic');
+      promptLines.forEach((line, index) => {
+        doc.text(line, 25, 50 + (index * 6));
+      });
+      
+      // Add responses
+      let yPosition = 80;
+      results.responses.forEach((response, index) => {
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${response.provider.toUpperCase()} Response:`, 20, yPosition);
+        doc.setFont('helvetica', 'normal');
+        
+        const responseLines = doc.splitTextToSize(response.response, 160);
+        responseLines.forEach((line, lineIndex) => {
+          doc.text(line, 25, yPosition + 10 + (lineIndex * 5));
+        });
+        
+        if (response.tokens_used) {
+          doc.text(`Tokens: ${response.tokens_used}`, 25, yPosition + 10 + (responseLines.length * 5));
+        }
+        
+        if (response.error) {
+          doc.text(`Error: ${response.error}`, 25, yPosition + 10 + (responseLines.length * 5));
+        }
+        
+        yPosition += 15 + (responseLines.length * 5) + 10;
+      });
+      
+      // Add timestamp
+      doc.setFontSize(10);
+      doc.text(`Generated: ${new Date(results.timestamp).toLocaleString()}`, 20, yPosition + 10);
+      
+      // Save the PDF
+      doc.save('ai-comparison-results.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
+  const exportToMarkdown = () => {
+    if (!results || !results.responses || results.responses.length === 0) {
+      alert('No results to export');
+      return;
+    }
+
+    let markdown = `# AI Comparison Results\n\n`;
+    
+    // Add prompt
+    markdown += `## Prompt\n${results.prompt}\n\n`;
+    
+    // Add responses
+    results.responses.forEach((response, index) => {
+      markdown += `## ${response.provider.toUpperCase()} Response\n\n`;
+      markdown += `${response.response}\n\n`;
+      
+      if (response.tokens_used) {
+        markdown += `*Tokens used: ${response.tokens_used}*\n\n`;
+      }
+      
+      if (response.error) {
+        markdown += `*Error: ${response.error}*\n\n`;
+      }
+      
+      markdown += `---\n\n`;
+    });
+    
+    // Add timestamp
+    markdown += `*Generated: ${new Date(results.timestamp).toLocaleString()}*\n`;
+    
+    // Create and download markdown file
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ai-comparison-results.md';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const getProviderColor = (provider: string): string => {
     const colors: { [key: string]: string } = {
       google: '#4285f4',
@@ -48,6 +157,22 @@ const ResultColumns: React.FC<ResultColumnsProps> = ({ results }) => {
     <div className="results-container">
       <div className="results-header">
         <h2>Comparison Results</h2>
+        <div className="export-buttons">
+          <button 
+            className="export-button pdf-button"
+            onClick={exportToPDF}
+            title="Download comparison results as PDF"
+          >
+            📄 Download PDF
+          </button>
+          <button 
+            className="export-button markdown-button"
+            onClick={exportToMarkdown}
+            title="Download comparison results as Markdown"
+          >
+            📝 Download Markdown
+          </button>
+        </div>
         <p className="prompt-display">
           <strong>Prompt as Query:</strong> {results.prompt}
         </p>
