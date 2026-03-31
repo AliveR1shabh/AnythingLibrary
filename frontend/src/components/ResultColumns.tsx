@@ -25,9 +25,10 @@ const ResultColumns: React.FC<ResultColumnsProps> = ({ results }) => {
 
     try {
       // Dynamically import jsPDF
-      const { jsPDF } = await import('jspdf');
+      const jsPDFModule = await import('jspdf');
+      const jsPDFConstructor = (jsPDFModule as any).default;
       
-      const doc = new jsPDF();
+      const doc = new jsPDFConstructor();
       
       // Add title
       doc.setFontSize(20);
