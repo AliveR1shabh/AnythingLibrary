@@ -40,7 +40,7 @@ const ResultColumns: React.FC<ResultColumnsProps> = ({ results }) => {
       const promptLines = doc.splitTextToSize(results.prompt, 180);
       doc.text('Prompt:', 20, 40);
       doc.setFont('helvetica', 'italic');
-      promptLines.forEach((line, index) => {
+      promptLines.forEach((line: string, index: number) => {
         doc.text(line, 25, 50 + (index * 6));
       });
       
@@ -57,7 +57,7 @@ const ResultColumns: React.FC<ResultColumnsProps> = ({ results }) => {
         doc.setFont('helvetica', 'normal');
         
         const responseLines = doc.splitTextToSize(response.response, 160);
-        responseLines.forEach((line, lineIndex) => {
+        responseLines.forEach((line: string, lineIndex: number) => {
           doc.text(line, 25, yPosition + 10 + (lineIndex * 5));
         });
         
