@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -343,6 +343,29 @@ async def health_check():
 async def get_available_providers():
     providers = get_providers()
     return {"providers": list(providers.keys())}
+
+@app.post("/login")
+async def login(request: Request):
+    try:
+        data = await request.json()
+        username = data.get('username', '')
+        password = data.get('password', '')
+        
+        # Demo mode: accept any username (2+ chars) and password (3+ chars)
+        if len(username) >= 2 and len(password) >= 3:
+            user_data = {
+                "username": username,
+                "login_time": datetime.now().isoformat()
+            }
+            return {"user": user_data, "message": "Login successful"}
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail="Username must be at least 2 characters and password at least 3 characters"
+            )
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @app.post("/compare", response_model=ComparisonResult)
 async def compare_ai_responses(request: AIRequest):
