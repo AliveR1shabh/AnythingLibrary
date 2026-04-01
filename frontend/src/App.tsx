@@ -46,7 +46,7 @@ const App: React.FC = () => {
 
   const fetchAvailableProviders = async () => {
     try {
-      const response = await fetch('http://localhost:8001/providers');
+      const response = await fetch('http://localhost:8002/providers');
       if (response.ok) {
         const data = await response.json();
         setAvailableProviders(data.providers);
@@ -64,7 +64,7 @@ const App: React.FC = () => {
     setLoginError(null);
     
     try {
-      const response = await fetch('http://localhost:8001/login', {
+      const response = await fetch('http://localhost:8002/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -105,7 +105,7 @@ const App: React.FC = () => {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8001/compare', {
+      const response = await fetch('http://localhost:8002/compare', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
